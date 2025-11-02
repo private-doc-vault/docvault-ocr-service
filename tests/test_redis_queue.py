@@ -40,7 +40,7 @@ class TestRedisQueueManager:
         """Test Redis connection is initialized correctly"""
         from app.redis_queue import RedisQueueManager
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -54,7 +54,7 @@ class TestRedisQueueManager:
 
         mock_redis.ping = AsyncMock(side_effect=Exception("Connection failed"))
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
 
             with pytest.raises(Exception, match="Connection failed"):
@@ -66,7 +66,7 @@ class TestRedisQueueManager:
         from app.redis_queue import RedisQueueManager
         from app.models import TaskStatus
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -85,7 +85,7 @@ class TestRedisQueueManager:
         """Test tasks are queued based on priority"""
         from app.redis_queue import RedisQueueManager
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -115,7 +115,7 @@ class TestRedisQueueManager:
         }
         mock_redis.hgetall = AsyncMock(return_value=task_data)
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -133,7 +133,7 @@ class TestRedisQueueManager:
 
         mock_redis.hgetall = AsyncMock(return_value={})
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -147,7 +147,7 @@ class TestRedisQueueManager:
         from app.redis_queue import RedisQueueManager
         from app.models import TaskStatus
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -169,7 +169,7 @@ class TestRedisQueueManager:
 
         mock_redis.rpop = AsyncMock(return_value=b"test-task-123")
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -185,7 +185,7 @@ class TestRedisQueueManager:
 
         mock_redis.rpop = AsyncMock(return_value=None)
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -200,7 +200,7 @@ class TestRedisQueueManager:
 
         mock_redis.llen = AsyncMock(return_value=5)
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -215,7 +215,7 @@ class TestRedisQueueManager:
         from app.redis_queue import RedisQueueManager
         from app.models import OCRResult
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -248,7 +248,7 @@ class TestRedisQueueManager:
         })
         mock_redis.get = AsyncMock(return_value=result_data.encode())
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -265,7 +265,7 @@ class TestRedisQueueManager:
 
         mock_redis.ttl = AsyncMock(return_value=3600)  # 1 hour remaining
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -279,7 +279,7 @@ class TestRedisQueueManager:
         """Test batch task creation"""
         from app.redis_queue import RedisQueueManager
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -316,7 +316,7 @@ class TestRedisQueueManager:
 
         mock_redis.hgetall = AsyncMock(side_effect=mock_hgetall_side_effect)
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -331,7 +331,7 @@ class TestRedisQueueManager:
         """Test cleaning up old tasks"""
         from app.redis_queue import RedisQueueManager
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -346,7 +346,7 @@ class TestRedisQueueManager:
         """Test Redis connection is properly closed"""
         from app.redis_queue import RedisQueueManager
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
             await manager.disconnect()
@@ -358,7 +358,7 @@ class TestRedisQueueManager:
         """Test multiple tasks can be created concurrently"""
         from app.redis_queue import RedisQueueManager
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -376,7 +376,7 @@ class TestRedisQueueManager:
         from app.redis_queue import RedisQueueManager
         from app.models import TaskStatus
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -399,7 +399,7 @@ class TestRedisQueueManager:
         }
         mock_redis.hgetall = AsyncMock(return_value=task_data)
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -414,7 +414,7 @@ class TestRedisQueueManager:
 
         mock_redis.llen = AsyncMock(side_effect=[10, 5])  # normal queue, high priority queue
 
-        with patch('app.redis_queue.aioredis.from_url', return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 

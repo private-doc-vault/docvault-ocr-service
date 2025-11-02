@@ -23,7 +23,7 @@ def mock_redis():
     redis_mock.set = AsyncMock(return_value=True)
     redis_mock.expire = AsyncMock(return_value=True)
     redis_mock.close = AsyncMock()
-    return mock_redis
+    return redis_mock
 
 
 class TestTaskMetrics:
@@ -32,7 +32,7 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_track_task_completion_time(self, mock_redis):
         """Should track duration from task start to completion"""
-        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -61,7 +61,7 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_track_success_rate(self, mock_redis):
         """Should calculate success rate from completed vs failed tasks"""
-        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -87,7 +87,7 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_track_retry_rate(self, mock_redis):
         """Should calculate retry rate from retry attempts"""
-        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -111,7 +111,7 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_increment_on_task_completion(self, mock_redis):
         """Should increment completed counter when task completes"""
-        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -138,7 +138,7 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_increment_on_task_failure(self, mock_redis):
         """Should increment failed counter when task fails"""
-        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -155,7 +155,7 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_track_average_processing_time(self, mock_redis):
         """Should calculate average processing time across all tasks"""
-        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -177,7 +177,7 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_stored_in_redis_with_ttl(self, mock_redis):
         """Should store metrics in Redis with expiration"""
-        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -196,7 +196,7 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_include_retry_count_in_stats(self, mock_redis):
         """Should include retry statistics in metrics"""
-        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -220,7 +220,7 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_track_tasks_in_dlq(self, mock_redis):
         """Should track count of tasks moved to dead letter queue"""
-        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -238,7 +238,7 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_reset_functionality(self, mock_redis):
         """Should allow resetting metrics counters"""
-        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -253,7 +253,7 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_handle_missing_data_gracefully(self, mock_redis):
         """Should return default values when metrics data is missing"""
-        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -275,7 +275,7 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_calculate_percentiles(self, mock_redis):
         """Should calculate duration percentiles (p50, p95, p99)"""
-        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
@@ -299,7 +299,7 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_track_time_windows(self, mock_redis):
         """Should track metrics for different time windows (1h, 24h, 7d)"""
-        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
+        with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 

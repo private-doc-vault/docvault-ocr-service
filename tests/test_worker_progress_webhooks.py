@@ -52,6 +52,9 @@ class TestWorkerProgressWebhooks:
             images.append(img)
         mock_doc.images = images
 
+        # Add native_text for PDFs (empty means OCR will be used)
+        mock_doc.native_text = []
+
         processor.process = Mock(return_value=mock_doc)
         return processor
 

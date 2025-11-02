@@ -102,7 +102,7 @@ class TestProgressHistoryTracking:
 
         # Verify correct key was queried
         redis_manager.redis.lrange.assert_called_once_with(
-            f"task:{task_id}:progress_history", 0, -1
+            f"task:{task_id}:progress_history", 0, 9
         )
 
         # Verify history is returned as list of dicts

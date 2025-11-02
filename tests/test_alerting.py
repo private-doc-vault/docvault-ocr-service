@@ -135,9 +135,12 @@ class TestStuckTaskAlerting:
                 # Check warning was called
                 assert mock_logger.warning.called
 
-                # Verify the count is mentioned in the message
+                # Verify the count is mentioned in the alert message (not individual task warnings)
                 warning_calls = mock_logger.warning.call_args_list
-                message = str(warning_calls[0])
+                # Find the ALERT message which contains the count
+                alert_calls = [str(call) for call in warning_calls if 'ALERT' in str(call) or 'High' in str(call) or 'high' in str(call)]
+                assert len(alert_calls) > 0, "Should have at least one alert warning"
+                message = alert_calls[0]
                 # Should mention the count somewhere
                 assert '10' in message or 'count' in message.lower()
 

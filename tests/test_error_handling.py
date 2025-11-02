@@ -69,8 +69,8 @@ class TestErrorHandling:
             error_message="Connection refused"
         )
 
-        assert "Redis" in error.error
-        assert "connection" in error.detail.lower()
+        assert error.error == "Service temporarily unavailable"
+        assert "redis" in error.detail.lower() and "connection" in error.detail.lower()
         assert error.status_code == 503
 
     @pytest.mark.asyncio
@@ -483,8 +483,9 @@ class TestErrorMiddleware:
         from fastapi import Request
 
         mock_request = MagicMock(spec=Request)
+        mock_request.headers.get.return_value = "test-request-id"
 
-        async def failing_endpoint():
+        async def failing_endpoint(request):
             raise Exception("Unexpected error")
 
         response = await error_middleware(mock_request, failing_endpoint)
@@ -499,8 +500,9 @@ class TestErrorMiddleware:
         from fastapi import Request, HTTPException
 
         mock_request = MagicMock(spec=Request)
+        mock_request.headers.get.return_value = "test-request-id"
 
-        async def http_error_endpoint():
+        async def http_error_endpoint(request):
             raise HTTPException(status_code=404, detail="Not found")
 
         response = await error_middleware(mock_request, http_error_endpoint)

@@ -61,13 +61,13 @@ class TestRedisTaskCleanup:
                 if call_count[0] == 1:  # First call for old task
                     return {
                         b"task_id": b"old-123",
-                        b"status": b"COMPLETED",
+                        b"status": b"completed",
                         b"completed_at": old_timestamp.encode()
                     }
                 else:  # Second call for recent task
                     return {
                         b"task_id": b"recent-456",
-                        b"status": b"COMPLETED",
+                        b"status": b"completed",
                         b"completed_at": recent_timestamp.encode()
                     }
 
@@ -99,7 +99,7 @@ class TestRedisTaskCleanup:
                 if call_count[0] == 1:  # Processing task
                     return {
                         b"task_id": b"proc-123",
-                        b"status": b"PROCESSING",
+                        b"status": b"processing",
                         b"task_started_at": old_timestamp.encode()
                     }
                 elif call_count[0] == 2:  # Failed task
@@ -111,7 +111,7 @@ class TestRedisTaskCleanup:
                 else:  # Completed task
                     return {
                         b"task_id": b"done-789",
-                        b"status": b"COMPLETED",
+                        b"status": b"completed",
                         b"completed_at": old_timestamp.encode()
                     }
 
@@ -179,7 +179,7 @@ class TestRedisTaskCleanup:
                 task_num = call_count[0]
                 return {
                     b"task_id": f"{task_num}".encode(),
-                    b"status": b"COMPLETED",
+                    b"status": b"completed",
                     b"completed_at": old_timestamp.encode()
                 }
 
@@ -210,7 +210,7 @@ class TestRedisTaskCleanup:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"123",
-                    b"status": b"COMPLETED",
+                    b"status": b"completed",
                     b"completed_at": old_timestamp.encode()
                 }
 
@@ -239,7 +239,7 @@ class TestRedisTaskCleanup:
             # Task without completed_at
             mock_redis.hgetall.return_value = {
                 b"task_id": b"123",
-                b"status": b"COMPLETED"
+                b"status": b"completed"
             }
 
             cutoff_date = datetime.utcnow() - timedelta(days=7)
@@ -263,7 +263,7 @@ class TestRedisTaskCleanup:
             recent_timestamp = (datetime.utcnow() - timedelta(days=2)).isoformat()
             mock_redis.hgetall.return_value = {
                 b"task_id": b"123",
-                b"status": b"COMPLETED",
+                b"status": b"completed",
                 b"completed_at": recent_timestamp.encode()
             }
 
@@ -287,7 +287,7 @@ class TestRedisTaskCleanup:
             # Task with invalid timestamp
             mock_redis.hgetall.return_value = {
                 b"task_id": b"123",
-                b"status": b"COMPLETED",
+                b"status": b"completed",
                 b"completed_at": b"invalid-timestamp"
             }
 

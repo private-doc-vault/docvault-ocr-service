@@ -47,7 +47,7 @@ class TestTaskRecoveryScenarios:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"stuck-task-123",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode(),
                     b"retry_count": b"0",
                     b"priority": b"normal",
@@ -89,7 +89,7 @@ class TestTaskRecoveryScenarios:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"stuck-task-456",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode(),
                     b"retry_count": b"3",  # Max retries reached
                     b"priority": b"normal",
@@ -131,7 +131,7 @@ class TestTaskRecoveryScenarios:
                 task_num = call_count[0]
                 return {
                     b"task_id": f"stuck-{task_num}".encode(),
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode(),
                     b"retry_count": b"0",
                     b"priority": b"normal"
@@ -170,7 +170,7 @@ class TestTaskRecoveryScenarios:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"preserve-task-789",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode(),
                     b"retry_count": b"1",
                     b"priority": b"high",
@@ -212,7 +212,7 @@ class TestTaskRecoveryScenarios:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"recent-task",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": recent_start.encode(),
                     b"retry_count": b"0"
                 }
@@ -337,7 +337,7 @@ class TestTaskRecoveryScenarios:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"status-update-task",
-                    b"status": b"PROCESSING",  # Currently processing
+                    b"status": b"processing",  # Currently processing
                     b"retry_count": b"0",
                     b"priority": b"normal",
                     b"in_dead_letter_queue": b"false"
@@ -374,7 +374,7 @@ class TestTaskRecoveryScenarios:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": task_id.encode(),
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode(),
                     b"retry_count": b"0",
                     b"priority": b"high",

@@ -20,14 +20,16 @@ from app.main import app
 client = TestClient(app)
 
 
+# Module-level fixtures (shared across all test classes)
+@pytest.fixture
+def shared_storage_dir():
+    """Create a temporary directory to simulate shared storage"""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        yield tmpdir
+
+
 class TestSharedStorageIntegration:
     """Integration tests for shared storage file processing"""
-
-    @pytest.fixture
-    def shared_storage_dir(self):
-        """Create a temporary directory to simulate shared storage"""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            yield tmpdir
 
     @pytest.fixture
     def test_image_file(self, shared_storage_dir):

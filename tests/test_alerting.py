@@ -37,7 +37,7 @@ class TestStuckTaskAlerting:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"stuck-1",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode()
                 }
 
@@ -78,7 +78,7 @@ class TestStuckTaskAlerting:
                 call_count[0] += 1
                 return {
                     b"task_id": f"stuck-{call_count[0]}".encode(),
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode()
                 }
 
@@ -118,7 +118,7 @@ class TestStuckTaskAlerting:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"stuck-x",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode()
                 }
 
@@ -158,7 +158,7 @@ class TestStuckTaskAlerting:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"stuck-x",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode()
                 }
 
@@ -193,7 +193,7 @@ class TestStuckTaskAlerting:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"stuck-x",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode()
                 }
 
@@ -230,7 +230,7 @@ class TestStuckTaskAlerting:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"stuck-x",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode()
                 }
 
@@ -262,7 +262,7 @@ class TestStuckTaskAlerting:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"stuck-x",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode()
                 }
 
@@ -298,7 +298,7 @@ class TestStuckTaskAlerting:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"stuck-x",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode()
                 }
 
@@ -336,7 +336,7 @@ class TestStuckTaskAlerting:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"stuck-x",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode()
                 }
 

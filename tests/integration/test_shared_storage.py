@@ -17,8 +17,6 @@ import io
 
 from app.main import app
 
-client = TestClient(app)
-
 
 # Module-level fixtures (shared across all test classes)
 @pytest.fixture
@@ -28,6 +26,7 @@ def shared_storage_dir():
         yield tmpdir
 
 
+@pytest.mark.usefixtures("initialize_test_app")
 class TestSharedStorageIntegration:
     """Integration tests for shared storage file processing"""
 
@@ -54,7 +53,7 @@ class TestSharedStorageIntegration:
 
         return file_path
 
-    def test_process_with_file_path_from_shared_storage(self, test_image_file):
+    def test_process_with_file_path_from_shared_storage(self, client, test_image_file):
         """Test processing file using file_path parameter"""
         # GIVEN: A file in shared storage
         assert os.path.exists(test_image_file)
@@ -79,7 +78,7 @@ class TestSharedStorageIntegration:
         assert os.path.exists(test_image_file)
         assert os.path.getsize(test_image_file) == initial_size
 
-    def test_no_file_duplication_with_file_path(self, test_image_file, shared_storage_dir):
+    def test_no_file_duplication_with_file_path(self, client, test_image_file, shared_storage_dir):
         """Test that using file_path does not create duplicates"""
         # GIVEN: A file in shared storage
         initial_file_count = len(os.listdir(shared_storage_dir))
@@ -98,7 +97,7 @@ class TestSharedStorageIntegration:
         final_file_count = len(os.listdir(shared_storage_dir))
         assert final_file_count == initial_file_count, "No duplicate files should be created"
 
-    def test_file_path_validation_prevents_traversal(self):
+    def test_file_path_validation_prevents_traversal(self, client):
         """Test that path traversal attempts are blocked"""
         malicious_paths = [
             "../../etc/passwd",
@@ -122,7 +121,7 @@ class TestSharedStorageIntegration:
             data = response.json()
             assert "error" in data or "detail" in data
 
-    def test_file_path_validation_requires_existing_file(self, shared_storage_dir):
+    def test_file_path_validation_requires_existing_file(self, client, shared_storage_dir):
         """Test that non-existent files are rejected"""
         # GIVEN: A path to non-existent file
         fake_path = os.path.join(shared_storage_dir, "nonexistent.pdf")
@@ -142,7 +141,7 @@ class TestSharedStorageIntegration:
         data = response.json()
         assert "not found" in str(data).lower() or "does not exist" in str(data).lower()
 
-    def test_file_path_validation_checks_extension(self, shared_storage_dir):
+    def test_file_path_validation_checks_extension(self, client, shared_storage_dir):
         """Test that invalid file extensions are rejected"""
         # GIVEN: A file with invalid extension
         invalid_file = os.path.join(shared_storage_dir, "malicious.exe")
@@ -163,7 +162,7 @@ class TestSharedStorageIntegration:
         data = response.json()
         assert "error" in data or "detail" in data
 
-    def test_backward_compatibility_file_upload_still_works(self):
+    def test_backward_compatibility_file_upload_still_works(self, client):
         """Test that old file upload method still works"""
         # GIVEN: A file upload (old method)
         img = Image.new('RGB', (100, 100), color='white')
@@ -183,7 +182,7 @@ class TestSharedStorageIntegration:
         data = response.json()
         assert "task_id" in data
 
-    def test_both_file_and_file_path_rejected(self, test_image_file):
+    def test_both_file_and_file_path_rejected(self, client, test_image_file):
         """Test that providing both file and file_path is rejected"""
         # GIVEN: Both file upload and file_path
         img = Image.new('RGB', (100, 100), color='white')
@@ -206,7 +205,7 @@ class TestSharedStorageIntegration:
         data = response.json()
         assert "error" in data or "detail" in data
 
-    def test_multiple_files_can_share_same_storage(self, shared_storage_dir):
+    def test_multiple_files_can_share_same_storage(self, client, shared_storage_dir):
         """Test that multiple files can coexist in shared storage"""
         # GIVEN: Multiple files in shared storage
         file_paths = []
@@ -236,7 +235,7 @@ class TestSharedStorageIntegration:
         # AND: All tasks should be unique
         assert len(task_ids) == len(set(task_ids)), "All task IDs should be unique"
 
-    def test_absolute_paths_are_accepted(self, test_image_file):
+    def test_absolute_paths_are_accepted(self, client, test_image_file):
         """Test that absolute paths work correctly"""
         # GIVEN: An absolute path
         absolute_path = os.path.abspath(test_image_file)
@@ -256,7 +255,7 @@ class TestSharedStorageIntegration:
         data = response.json()
         assert "task_id" in data
 
-    def test_relative_paths_work_within_allowed_directories(self, shared_storage_dir):
+    def test_relative_paths_work_within_allowed_directories(self, client, shared_storage_dir):
         """Test that relative paths within allowed directories work"""
         # GIVEN: A file in a subdirectory
         subdir = os.path.join(shared_storage_dir, "subdir")
@@ -278,7 +277,7 @@ class TestSharedStorageIntegration:
         # THEN: Should succeed
         assert response.status_code == 200
 
-    def test_symlinks_are_validated(self, test_image_file, shared_storage_dir):
+    def test_symlinks_are_validated(self, client, test_image_file, shared_storage_dir):
         """Test that symlinks pointing outside storage are rejected"""
         # GIVEN: A symlink pointing to test file
         symlink_path = os.path.join(shared_storage_dir, "symlink.png")
@@ -304,6 +303,7 @@ class TestSharedStorageIntegration:
                 pytest.skip("Could not create symlink for testing")
 
 
+@pytest.mark.usefixtures("initialize_test_app")
 class TestSharedStorageCleanupBehavior:
     """Test that OCR service does NOT clean up files (backend's responsibility)"""
 
@@ -315,7 +315,7 @@ class TestSharedStorageCleanupBehavior:
         img.save(file_path)
         return file_path
 
-    def test_files_not_cleaned_up_after_processing(self, test_file_with_tracking):
+    def test_files_not_cleaned_up_after_processing(self, client, test_file_with_tracking):
         """Test that files remain after OCR processing"""
         # GIVEN: A file in shared storage
         assert os.path.exists(test_file_with_tracking)

@@ -8,13 +8,12 @@ from app.main import app
 import io
 from PIL import Image
 
-client = TestClient(app)
 
-
+@pytest.mark.usefixtures("initialize_test_app")
 class TestHealthEndpoints:
     """Test health check and status endpoints"""
 
-    def test_root_endpoint(self):
+    def test_root_endpoint(self, client):
         """Test root endpoint returns service info"""
         response = client.get("/")
         assert response.status_code == 200
@@ -23,7 +22,7 @@ class TestHealthEndpoints:
         assert "status" in data
         assert data["status"] == "running"
 
-    def test_health_check_endpoint(self):
+    def test_health_check_endpoint(self, client):
         """Test health check endpoint"""
         response = client.get("/health")
         assert response.status_code == 200
@@ -32,24 +31,25 @@ class TestHealthEndpoints:
         assert data["service"] == "ocr"
 
 
+@pytest.mark.usefixtures("initialize_test_app")
 class TestOCRProcessEndpoints:
     """Test OCR processing endpoints"""
 
-    def test_process_image_endpoint_exists(self):
+    def test_process_image_endpoint_exists(self, client):
         """Test that POST /api/v1/ocr/process endpoint exists"""
         # This test will initially fail - we need to create this endpoint
         response = client.post("/api/v1/ocr/process")
         # Should return 422 (validation error) not 404 (not found)
         assert response.status_code != 404
 
-    def test_process_image_requires_file(self):
+    def test_process_image_requires_file(self, client):
         """Test that process endpoint requires a file"""
         response = client.post("/api/v1/ocr/process")
         assert response.status_code == 422  # Unprocessable Entity
         data = response.json()
         assert "detail" in data
 
-    def test_process_image_with_valid_image(self):
+    def test_process_image_with_valid_image(self, client):
         """Test OCR processing with a valid image file"""
         # Create a simple test image
         img = Image.new('RGB', (100, 100), color='white')
@@ -68,7 +68,7 @@ class TestOCRProcessEndpoints:
         assert "status" in data
         assert data["status"] in ["queued", "processing", "completed"]
 
-    def test_process_image_with_language_parameter(self):
+    def test_process_image_with_language_parameter(self, client):
         """Test OCR processing with language specification"""
         img = Image.new('RGB', (100, 100), color='white')
         img_bytes = io.BytesIO()
@@ -85,7 +85,7 @@ class TestOCRProcessEndpoints:
         data = response.json()
         assert "task_id" in data
 
-    def test_process_image_with_invalid_file_type(self):
+    def test_process_image_with_invalid_file_type(self, client):
         """Test that invalid file types are rejected"""
         invalid_file = io.BytesIO(b"not an image")
 
@@ -98,7 +98,7 @@ class TestOCRProcessEndpoints:
         data = response.json()
         assert "error" in data or "detail" in data
 
-    def test_process_image_with_oversized_file(self):
+    def test_process_image_with_oversized_file(self, client):
         """Test that oversized files are rejected"""
         # Create a large image that exceeds size limit
         large_img = Image.new('RGB', (10000, 10000), color='white')
@@ -117,7 +117,7 @@ class TestOCRProcessEndpoints:
     # NEW TESTS FOR FILE PATH-BASED PROCESSING
     # Following TDD - these will fail until routes.py is updated
 
-    def test_process_with_file_path_instead_of_upload(self):
+    def test_process_with_file_path_instead_of_upload(self, client):
         """Test OCR processing using file_path parameter instead of file upload"""
         import tempfile
         import os
@@ -148,7 +148,7 @@ class TestOCRProcessEndpoints:
             if os.path.exists(file_path):
                 os.unlink(file_path)
 
-    def test_process_with_file_path_validates_file_exists(self):
+    def test_process_with_file_path_validates_file_exists(self, client):
         """Test that file_path validation checks if file exists"""
         response = client.post(
             "/api/v1/ocr/process",
@@ -164,7 +164,7 @@ class TestOCRProcessEndpoints:
         assert "error" in data or "detail" in data
         assert "not found" in str(data).lower() or "does not exist" in str(data).lower()
 
-    def test_process_with_file_path_prevents_path_traversal(self):
+    def test_process_with_file_path_prevents_path_traversal(self, client):
         """Test that file_path validation prevents path traversal attacks"""
         # Test various path traversal attempts
         malicious_paths = [
@@ -188,7 +188,7 @@ class TestOCRProcessEndpoints:
             data = response.json()
             assert "error" in data or "detail" in data
 
-    def test_process_with_file_path_requires_allowed_extension(self):
+    def test_process_with_file_path_requires_allowed_extension(self, client):
         """Test that file_path validation checks file extension"""
         import tempfile
         import os
@@ -215,7 +215,7 @@ class TestOCRProcessEndpoints:
             if os.path.exists(file_path):
                 os.unlink(file_path)
 
-    def test_process_with_shared_storage_path(self):
+    def test_process_with_shared_storage_path(self, client):
         """Test processing file from shared storage directory"""
         import tempfile
         import os
@@ -244,7 +244,7 @@ class TestOCRProcessEndpoints:
             if os.path.exists(file_path):
                 os.unlink(file_path)
 
-    def test_process_accepts_either_file_or_file_path(self):
+    def test_process_accepts_either_file_or_file_path(self, client):
         """Test that endpoint can accept either file upload OR file_path (backward compatibility)"""
         import tempfile
         import os
@@ -277,7 +277,7 @@ class TestOCRProcessEndpoints:
             if os.path.exists(file_path):
                 os.unlink(file_path)
 
-    def test_process_rejects_both_file_and_file_path(self):
+    def test_process_rejects_both_file_and_file_path(self, client):
         """Test that providing both file and file_path is rejected"""
         import tempfile
 
@@ -306,16 +306,17 @@ class TestOCRProcessEndpoints:
                 os.unlink(file_path)
 
 
+@pytest.mark.usefixtures("initialize_test_app")
 class TestOCRStatusEndpoints:
     """Test OCR processing status endpoints"""
 
-    def test_get_task_status_endpoint_exists(self):
+    def test_get_task_status_endpoint_exists(self, client):
         """Test that GET /api/v1/ocr/status/{task_id} endpoint exists"""
         response = client.get("/api/v1/ocr/status/test-task-id")
         # Should not return 404
         assert response.status_code != 404
 
-    def test_get_task_status_with_valid_id(self):
+    def test_get_task_status_with_valid_id(self, client):
         """Test retrieving status of a processing task"""
         # First create a task
         img = Image.new('RGB', (100, 100), color='white')
@@ -339,7 +340,7 @@ class TestOCRStatusEndpoints:
         assert "status" in data
         assert data["status"] in ["queued", "processing", "completed", "failed"]
 
-    def test_get_task_status_with_invalid_id(self):
+    def test_get_task_status_with_invalid_id(self, client):
         """Test retrieving status with non-existent task ID"""
         response = client.get("/api/v1/ocr/status/invalid-task-id-12345")
         assert response.status_code == 404
@@ -347,15 +348,16 @@ class TestOCRStatusEndpoints:
         assert "error" in data or "detail" in data
 
 
+@pytest.mark.usefixtures("initialize_test_app")
 class TestOCRResultEndpoints:
     """Test OCR result retrieval endpoints"""
 
-    def test_get_task_result_endpoint_exists(self):
+    def test_get_task_result_endpoint_exists(self, client):
         """Test that GET /api/v1/ocr/result/{task_id} endpoint exists"""
         response = client.get("/api/v1/ocr/result/test-task-id")
         assert response.status_code != 404
 
-    def test_get_task_result_with_completed_task(self):
+    def test_get_task_result_with_completed_task(self, client):
         """Test retrieving results of a completed OCR task"""
         # First create and process a task
         img = Image.new('RGB', (100, 100), color='white')
@@ -383,21 +385,22 @@ class TestOCRResultEndpoints:
             assert "confidence" in data
             assert isinstance(data["text"], str)
 
-    def test_get_task_result_with_invalid_id(self):
+    def test_get_task_result_with_invalid_id(self, client):
         """Test retrieving results with non-existent task ID"""
         response = client.get("/api/v1/ocr/result/invalid-task-id-67890")
         assert response.status_code == 404
 
 
+@pytest.mark.usefixtures("initialize_test_app")
 class TestBatchProcessingEndpoints:
     """Test batch OCR processing endpoints"""
 
-    def test_batch_process_endpoint_exists(self):
+    def test_batch_process_endpoint_exists(self, client):
         """Test that POST /api/v1/ocr/batch endpoint exists"""
         response = client.post("/api/v1/ocr/batch")
         assert response.status_code != 404
 
-    def test_batch_process_with_multiple_files(self):
+    def test_batch_process_with_multiple_files(self, client):
         """Test batch processing with multiple image files"""
         files = []
         for i in range(3):
@@ -415,7 +418,7 @@ class TestBatchProcessingEndpoints:
         assert "task_ids" in data
         assert len(data["task_ids"]) == 3
 
-    def test_batch_status_endpoint(self):
+    def test_batch_status_endpoint(self, client):
         """Test retrieving status of batch processing"""
         # Create a batch
         files = []
@@ -439,10 +442,11 @@ class TestBatchProcessingEndpoints:
         assert "failed" in data
 
 
+@pytest.mark.usefixtures("initialize_test_app")
 class TestSupportedLanguagesEndpoint:
     """Test endpoint for listing supported OCR languages"""
 
-    def test_supported_languages_endpoint(self):
+    def test_supported_languages_endpoint(self, client):
         """Test GET /api/v1/ocr/languages endpoint"""
         response = client.get("/api/v1/ocr/languages")
         assert response.status_code == 200

@@ -29,12 +29,12 @@ class OCRResult:
 class OCRService:
     """Service for performing OCR on images and documents"""
 
-    def __init__(self, language: str = "pol"):
+    def __init__(self, language: str = "eng"):
         """
         Initialize OCR service
 
         Args:
-            language: Default language for OCR (default: pol)
+            language: Default language for OCR (default: eng)
         """
         self.default_language = language
         self._supported_languages = None

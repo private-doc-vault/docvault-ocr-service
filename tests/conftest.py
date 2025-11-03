@@ -10,19 +10,54 @@ from fastapi.testclient import TestClient
 @pytest.fixture(scope="function")
 def mock_redis_client():
     """Mock Redis client for tests"""
+    from datetime import datetime
+
+    # Storage for created tasks during tests
+    test_tasks = {}
+
+    async def mock_hset(key, *args):
+        """Mock hset that stores task data"""
+        if key.startswith('task:'):
+            if len(args) == 2:
+                # Single key-value pair
+                if key not in test_tasks:
+                    test_tasks[key] = {}
+                test_tasks[key][args[0]] = args[1]
+            else:
+                # Multiple key-value pairs
+                if key not in test_tasks:
+                    test_tasks[key] = {}
+                for i in range(0, len(args), 2):
+                    test_tasks[key][args[i]] = args[i+1]
+        return True
+
+    async def mock_hgetall(key):
+        """Mock hgetall that retrieves stored task data"""
+        if key in test_tasks:
+            return test_tasks[key]
+        return {}
+
+    async def mock_exists(key):
+        """Mock exists check"""
+        return 1 if key in test_tasks else 0
+
     redis_mock = AsyncMock()
     redis_mock.ping = AsyncMock(return_value=True)
     redis_mock.keys = AsyncMock(return_value=[])
-    redis_mock.hgetall = AsyncMock(return_value={})
-    redis_mock.hset = AsyncMock(return_value=True)
+    redis_mock.hgetall = AsyncMock(side_effect=mock_hgetall)
+    redis_mock.hset = AsyncMock(side_effect=mock_hset)
     redis_mock.hget = AsyncMock(return_value=None)
-    redis_mock.exists = AsyncMock(return_value=0)
+    redis_mock.exists = AsyncMock(side_effect=mock_exists)
     redis_mock.delete = AsyncMock(return_value=1)
     redis_mock.lpush = AsyncMock(return_value=1)
     redis_mock.rpop = AsyncMock(return_value=None)
     redis_mock.llen = AsyncMock(return_value=0)
     redis_mock.close = AsyncMock()
     redis_mock.wait_closed = AsyncMock()
+
+    # Store reference for tests
+    redis_mock._test_tasks = test_tasks
+
     return redis_mock
 
 

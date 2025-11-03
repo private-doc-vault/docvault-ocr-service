@@ -147,6 +147,9 @@ class TestRedisQueueManager:
         from app.redis_queue import RedisQueueManager
         from app.models import TaskStatus
 
+        # Mock that task exists
+        mock_redis.exists = AsyncMock(return_value=1)
+
         with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
@@ -198,13 +201,15 @@ class TestRedisQueueManager:
         """Test getting queue length"""
         from app.redis_queue import RedisQueueManager
 
+        # Mock returns 5 for normal queue specifically
         mock_redis.llen = AsyncMock(return_value=5)
 
         with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
 
-            length = await manager.get_queue_length()
+            # Get length for specific priority
+            length = await manager.get_queue_length(priority="normal")
 
             assert length == 5
             mock_redis.llen.assert_called_once()
@@ -309,9 +314,13 @@ class TestRedisQueueManager:
         async def mock_hgetall_side_effect(key):
             if key.startswith("batch:"):
                 return batch_data
+            # Extract task_id from key (format: "task:task-1")
+            task_id = key.split(":")[-1] if ":" in key else "task-1"
             return {
+                b"task_id": task_id.encode() if isinstance(task_id, str) else task_id,
                 b"status": b"completed",
-                b"progress": b"100"
+                b"progress": b"100",
+                b"message": b"Done"
             }
 
         mock_redis.hgetall = AsyncMock(side_effect=mock_hgetall_side_effect)
@@ -376,6 +385,14 @@ class TestRedisQueueManager:
         from app.redis_queue import RedisQueueManager
         from app.models import TaskStatus
 
+        # Mock existing task data with retry_count < max
+        mock_redis.hgetall = AsyncMock(return_value={
+            b"task_id": b"test-task-123",
+            b"status": b"failed",
+            b"retry_count": b"0",
+            b"priority": b"normal"
+        })
+
         with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()
@@ -412,7 +429,8 @@ class TestRedisQueueManager:
         """Test getting queue statistics"""
         from app.redis_queue import RedisQueueManager
 
-        mock_redis.llen = AsyncMock(side_effect=[10, 5])  # normal queue, high priority queue
+        # Provide values for high, normal, and low priority queues
+        mock_redis.llen = AsyncMock(side_effect=[10, 5, 3])
 
         with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis):
             manager = RedisQueueManager("redis://localhost:6379/0")

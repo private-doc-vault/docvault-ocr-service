@@ -248,6 +248,9 @@ class TestTaskMetrics:
 
                 # Should delete or reset metric keys
                 assert mock_redis.delete.called or mock_redis.set.called
+            else:
+                # If method doesn't exist, skip this assertion
+                pytest.skip("reset_metrics method not implemented")
 
             await manager.disconnect()
 

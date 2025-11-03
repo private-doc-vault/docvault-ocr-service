@@ -15,18 +15,21 @@ def mock_redis_client():
     # Storage for created tasks during tests
     test_tasks = {}
 
-    async def mock_hset(key, *args):
+    async def mock_hset(key, *args, mapping=None, **kwargs):
         """Mock hset that stores task data"""
-        if key.startswith('task:'):
-            if len(args) == 2:
-                # Single key-value pair
-                if key not in test_tasks:
-                    test_tasks[key] = {}
+        if key.startswith('task:') or key.startswith('batch:'):
+            if key not in test_tasks:
+                test_tasks[key] = {}
+
+            # Handle mapping parameter (hset with dict)
+            if mapping:
+                for field, value in mapping.items():
+                    test_tasks[key][field] = value
+            elif len(args) == 2:
+                # Single key-value pair: hset(key, field, value)
                 test_tasks[key][args[0]] = args[1]
-            else:
-                # Multiple key-value pairs
-                if key not in test_tasks:
-                    test_tasks[key] = {}
+            elif len(args) > 2:
+                # Multiple key-value pairs: hset(key, f1, v1, f2, v2, ...)
                 for i in range(0, len(args), 2):
                     test_tasks[key][args[i]] = args[i+1]
         return True
@@ -34,7 +37,13 @@ def mock_redis_client():
     async def mock_hgetall(key):
         """Mock hgetall that retrieves stored task data"""
         if key in test_tasks:
-            return test_tasks[key]
+            # Convert to bytes like real Redis
+            result = {}
+            for k, v in test_tasks[key].items():
+                key_bytes = k.encode() if isinstance(k, str) else k
+                value_bytes = v.encode() if isinstance(v, str) else v
+                result[key_bytes] = value_bytes
+            return result
         return {}
 
     async def mock_exists(key):

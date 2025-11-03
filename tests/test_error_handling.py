@@ -529,8 +529,9 @@ class TestErrorMiddleware:
 
         mock_request = MagicMock(spec=Request)
         mock_request.headers = {"X-Request-ID": "req-123"}
+        mock_request.headers.get = MagicMock(return_value="req-123")
 
-        async def failing_endpoint():
+        async def failing_endpoint(request):
             raise Exception("Error")
 
         response = await error_middleware(mock_request, failing_endpoint)

@@ -43,7 +43,7 @@ class TestTaskMetrics:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"duration-task-123",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": started_at.encode(),
                     b"created_at": (datetime.utcnow() - timedelta(minutes=6)).isoformat().encode()
                 }
@@ -121,7 +121,7 @@ class TestTaskMetrics:
             async def hgetall_side_effect(key):
                 return {
                     b"task_id": b"complete-task-123",
-                    b"status": b"PROCESSING",
+                    b"status": b"processing",
                     b"task_started_at": datetime.utcnow().isoformat().encode()
                 }
 

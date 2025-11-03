@@ -183,25 +183,26 @@ class StatusReporter:
             elapsed = (datetime.utcnow() - self.started_at).total_seconds()
             estimated_total = (elapsed / self.progress) * 100
             remaining = estimated_total - elapsed
-            estimated_completion_time = (datetime.utcnow() + timedelta(seconds=remaining)).isoformat()
+            estimated_completion_time = datetime.utcnow() + timedelta(seconds=remaining)
+
+        # Get retry information if failed
+        retryable = None
+        retry_count = None
+        if self.status == TaskStatus.FAILED and hasattr(self, 'retryable'):
+            retryable = self.retryable
+            retry_count = getattr(self, 'retry_count', 0)
 
         status = TaskStatusResponse(
             task_id=self.task_id,
             status=self.status,
             progress=self.progress,
             message=self.message,
-            created_at=self.created_at.isoformat(),
-            updated_at=self.updated_at.isoformat()
+            created_at=self.created_at,
+            updated_at=self.updated_at,
+            estimated_completion_time=estimated_completion_time,
+            retryable=retryable,
+            retry_count=retry_count
         )
-
-        # Add estimated completion time if available
-        if estimated_completion_time:
-            status.estimated_completion_time = estimated_completion_time
-
-        # Add retry information if failed
-        if self.status == TaskStatus.FAILED and hasattr(self, 'retryable'):
-            status.retryable = self.retryable
-            status.retry_count = getattr(self, 'retry_count', 0)
 
         return status
 

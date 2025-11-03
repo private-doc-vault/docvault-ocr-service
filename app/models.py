@@ -55,6 +55,7 @@ class TaskStatusResponse(BaseModel):
     updated_at: Optional[datetime] = None
     estimated_completion_time: Optional[datetime] = None
     retryable: Optional[bool] = None
+    retry_count: Optional[int] = None
 
     class Config:
         json_schema_extra = {

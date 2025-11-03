@@ -29,32 +29,37 @@ def mock_redis_client():
 @pytest.fixture(scope="function")
 def initialize_test_app(mock_redis_client):
     """Initialize the FastAPI app with mocked Redis for API tests"""
-    with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis_client):
-        # Import app after patching to ensure the patch is applied
-        from app.main import app
-        from app.redis_queue import init_redis_queue_manager
+    import asyncio
 
-        # Manually trigger the startup event
-        import asyncio
+    # Get or create event loop
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
 
-        async def setup():
-            await init_redis_queue_manager("redis://localhost:6379/0")
+    # Start patching
+    patcher = patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis_client)
+    patcher.start()
 
-        # Run the startup in an event loop
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+    # Import app after patching to ensure the patch is applied
+    from app.main import app
+    from app.redis_queue import init_redis_queue_manager, redis_queue_manager
 
-        loop.run_until_complete(setup())
+    # Manually trigger the startup event
+    async def setup():
+        await init_redis_queue_manager("redis://localhost:6379/0")
 
-        yield app
+    loop.run_until_complete(setup())
 
-        # Cleanup
-        from app.redis_queue import redis_queue_manager
-        if redis_queue_manager:
-            loop.run_until_complete(redis_queue_manager.disconnect())
+    yield app
+
+    # Cleanup
+    if redis_queue_manager:
+        loop.run_until_complete(redis_queue_manager.disconnect())
+
+    # Stop patching
+    patcher.stop()
 
 
 @pytest.fixture(scope="function")

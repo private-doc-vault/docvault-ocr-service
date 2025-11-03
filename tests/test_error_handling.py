@@ -293,10 +293,10 @@ class TestStatusReporting:
         await reporter.update_task_status("task-3", TaskStatus.QUEUED, 0)
 
         status = await reporter.get_batch_status()
-        assert status.completed == 1
-        assert status.processing == 1
-        assert status.queued == 1
-        assert status.total == 3
+        assert status["completed"] == 1
+        assert status["processing"] == 1
+        assert status["queued"] == 1
+        assert status["total"] == 3
 
     @pytest.mark.asyncio
     async def test_status_history_tracking(self):
@@ -528,8 +528,9 @@ class TestErrorMiddleware:
         from fastapi import Request
 
         mock_request = MagicMock(spec=Request)
-        mock_request.headers = {"X-Request-ID": "req-123"}
-        mock_request.headers.get = MagicMock(return_value="req-123")
+        mock_headers = MagicMock()
+        mock_headers.get = MagicMock(return_value="req-123")
+        mock_request.headers = mock_headers
 
         async def failing_endpoint(request):
             raise Exception("Error")

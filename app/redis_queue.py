@@ -101,7 +101,7 @@ class RedisQueueManager:
 
         task_data = {
             "task_id": task_id,
-            "status": TaskStatus.QUEUED,
+            "status": TaskStatus.QUEUED.value,  # Store enum value, not enum itself
             "progress": 0,
             "message": "Task queued for processing",
             "language": language,

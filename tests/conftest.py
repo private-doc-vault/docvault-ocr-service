@@ -50,12 +50,18 @@ def mock_redis_client():
         """Mock exists check"""
         return 1 if key in test_tasks else 0
 
+    async def mock_get(key):
+        """Mock get for string values (like JSON results)"""
+        # For now, return None (no results stored yet)
+        return None
+
     redis_mock = AsyncMock()
     redis_mock.ping = AsyncMock(return_value=True)
     redis_mock.keys = AsyncMock(return_value=[])
     redis_mock.hgetall = AsyncMock(side_effect=mock_hgetall)
     redis_mock.hset = AsyncMock(side_effect=mock_hset)
     redis_mock.hget = AsyncMock(return_value=None)
+    redis_mock.get = AsyncMock(side_effect=mock_get)
     redis_mock.exists = AsyncMock(side_effect=mock_exists)
     redis_mock.delete = AsyncMock(return_value=1)
     redis_mock.lpush = AsyncMock(return_value=1)

@@ -238,6 +238,9 @@ class TestTaskMetrics:
     @pytest.mark.asyncio
     async def test_metrics_reset_functionality(self, mock_redis):
         """Should allow resetting metrics counters"""
+        # Mock that there are some metrics keys to delete
+        mock_redis.keys = AsyncMock(return_value=[b"metrics:tasks:completed", b"metrics:tasks:failed"])
+
         with patch('app.redis_queue.aioredis.from_url', new_callable=AsyncMock, return_value=mock_redis) as mock_from_url:
             manager = RedisQueueManager("redis://localhost:6379/0")
             await manager.connect()

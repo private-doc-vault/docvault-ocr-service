@@ -313,8 +313,11 @@ class TestOCRStatusEndpoints:
     def test_get_task_status_endpoint_exists(self, client):
         """Test that GET /api/v1/ocr/status/{task_id} endpoint exists"""
         response = client.get("/api/v1/ocr/status/test-task-id")
-        # Should not return 404
-        assert response.status_code != 404
+        # Endpoint exists, returns 404 for non-existent task (not 404 for route not found)
+        assert response.status_code == 404
+        data = response.json()
+        # Should have error detail, not generic "Not Found"
+        assert "error" in data or "detail" in data
 
     def test_get_task_status_with_valid_id(self, client):
         """Test retrieving status of a processing task"""
@@ -355,7 +358,11 @@ class TestOCRResultEndpoints:
     def test_get_task_result_endpoint_exists(self, client):
         """Test that GET /api/v1/ocr/result/{task_id} endpoint exists"""
         response = client.get("/api/v1/ocr/result/test-task-id")
-        assert response.status_code != 404
+        # Endpoint exists, returns 404 for non-existent task (not 404 for route not found)
+        assert response.status_code == 404
+        data = response.json()
+        # Should have error detail, not generic "Not Found"
+        assert "error" in data or "detail" in data
 
     def test_get_task_result_with_completed_task(self, client):
         """Test retrieving results of a completed OCR task"""
